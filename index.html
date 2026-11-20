@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>F.I.P.J.P.競技規則 5択問題集</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Noto Sans JP & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .choice-btn {
+      transition: all 0.15s ease-in-out;
+    }
+    .choice-btn:active {
+      transform: scale(0.99);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- ヘッダー -->
+  <header class="bg-slate-900 text-white shadow-md sticky top-0 z-20">
+    <div class="max-w-3xl mx-auto px-4 py-3.5 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <!-- ペタンクブール風のアイコンSVG -->
+        <svg class="w-7 h-7 text-sky-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M5.5 8.5c4 1.5 9 1.5 13 0" />
+          <path d="M5.5 15.5c4-1.5 9-1.5 13 0" />
+          <circle cx="18.5" cy="18.5" r="2.5" fill="#fbbf24" stroke="none" />
+        </svg>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold tracking-tight leading-tight">F.I.P.J.P.競技規則 5択問題集</h1>
+          <p class="text-[11px] text-slate-400 leading-none mt-0.5">2020年12月改定版 準拠</p>
+        </div>
+      </div>
+      <button id="headerResetBtn" onclick="confirmReturnHome()" class="hidden text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 transition">
+        トップへ
+      </button>
+    </div>
+  </header>
+
+  <!-- メインコンテナ -->
+  <main class="flex-1 w-full max-w-3xl mx-auto px-4 py-6 sm:py-8 flex flex-col">
+
+    <!-- 1. スタート画面 -->
+    <section id="startScreen" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-10 my-auto">
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 text-sky-700 text-xs font-semibold mb-4 border border-sky-200">
+        <span>自己学習用トレーニングアプリ</span>
+      </div>
+      <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 mb-3 leading-snug">
+        F.I.P.J.P. 競技規則<br class="sm:hidden">マスター 5択クイズ
+      </h2>
+      <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6">
+        国際ペタンク・プロヴァンサル連盟（F.I.P.J.P.）競技規則（2020年12月改定）の全条文から作成した5択問題集です。数値規定や反則時の処置など、実践で迷いやすいポイントを確認できます。
+      </p>
+
+      <div class="bg-slate-50 rounded-xl p-4 sm:p-5 border border-slate-200/80 mb-8 space-y-2.5 text-sm text-slate-700">
+        <div class="flex items-start gap-2.5">
+          <span class="text-sky-600 font-bold">●</span>
+          <span>収録問題プール（全<span id="totalPoolCount">25</span>問）から<strong>毎回ランダムに10問</strong>出題されます。</span>
+        </div>
+        <div class="flex items-start gap-2.5">
+          <span class="text-sky-600 font-bold">●</span>
+          <span>選択肢の並び順も毎回自動でシャッフルされます。</span>
+        </div>
+        <div class="flex items-start gap-2.5">
+          <span class="text-sky-600 font-bold">●</span>
+          <span>10問すべて解き終わった後に、<strong>まとめて正誤判定と条文解説</strong>が表示されます（解答中は前の問題に戻って選び直すことも可能です）。</span>
+        </div>
+      </div>
+
+      <button onclick="startQuiz()" class="w-full bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white font-bold text-base sm:text-lg py-4 px-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2">
+        <span>スタート（10問開始）</span>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+        </svg>
+      </button>
+    </section>
+
+    <!-- 2. 問題解答画面 -->
+    <section id="quizScreen" class="hidden flex-1 flex flex-col">
+      <!-- 進捗ステータス -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 mb-4">
+        <div class="flex items-center justify-between text-sm font-bold mb-2">
+          <span class="text-sky-700 text-base">第 <span id="currentQNum">1</span> 問 <span class="text-slate-400 font-normal text-sm">/ 全 10 問</span></span>
+          <span class="text-slate-500 text-xs font-medium" id="answeredCountText">解答済み: 0 / 10</span>
+        </div>
+        <!-- プログレスバー -->
+        <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+          <div id="progressBar" class="bg-sky-600 h-2.5 rounded-full transition-all duration-300" style="width: 10%"></div>
+        </div>
+      </div>
+
+      <!-- 問題カード -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-7 mb-5 flex-1 flex flex-col justify-between">
+        <div>
+          <div class="mb-3">
+            <span id="questionCategoryBadge" class="inline-block text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-100 text-slate-600">
+              一般規定
+            </span>
+          </div>
+          <h3 id="questionText" class="text-base sm:text-lg font-bold text-slate-900 leading-relaxed mb-6">
+            ここに問題文が表示されます。
+          </h3>
+
+          <!-- 5択リスト -->
+          <div id="choicesContainer" class="space-y-3">
+            <!-- JSで動的生成 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ナビゲーションボタン -->
+      <div class="flex items-center justify-between gap-3 pt-1 pb-4">
+        <button id="prevBtn" onclick="prevQuestion()" class="flex-1 sm:flex-none sm:w-36 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none text-slate-700 font-bold py-3.5 px-4 rounded-xl border border-slate-300 shadow-sm transition flex items-center justify-center gap-1.5 text-sm sm:text-base">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          <span>前の問題へ</span>
+        </button>
+
+        <button id="nextBtn" onclick="nextQuestion()" disabled class="flex-[2] sm:flex-none sm:w-52 bg-sky-600 hover:bg-sky-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold py-3.5 px-6 rounded-xl shadow-sm transition flex items-center justify-center gap-1.5 text-sm sm:text-base">
+          <span id="nextBtnLabel">次の問題へ</span>
+          <svg id="nextBtnIcon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- 3. 結果・解説画面 -->
+    <section id="resultScreen" class="hidden space-y-6 pb-8">
+      <!-- スコアサマリーカード -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 text-center">
+        <p class="text-xs sm:text-sm font-bold text-sky-700 uppercase tracking-wider mb-1">RESULT & REVIEW</p>
+        <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">お疲れさまでした！採点結果</h2>
+
+        <div class="inline-flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 bg-slate-50 border border-slate-200 rounded-2xl px-6 sm:px-10 py-5 mb-5">
+          <div>
+            <div class="text-xs text-slate-500 font-medium mb-1">正解数</div>
+            <div class="text-3xl sm:text-4xl font-extrabold text-slate-900">
+              10<span class="text-base font-bold text-slate-600 mx-1">問中</span><span id="scoreCount" class="text-sky-600 text-4xl sm:text-5xl">0</span><span class="text-base font-bold text-slate-600 ml-1">問正解！</span>
+            </div>
+          </div>
+          <div class="hidden sm:block w-px h-12 bg-slate-200"></div>
+          <div>
+            <div class="text-xs text-slate-500 font-medium mb-1">正答率</div>
+            <div class="text-3xl sm:text-4xl font-extrabold text-slate-800">
+              <span id="scorePercent">0</span><span class="text-lg font-bold ml-0.5">%</span>
+            </div>
+          </div>
+        </div>
+
+        <p id="scoreComment" class="text-sm sm:text-base text-slate-600 font-medium mb-6">
+          解説を確認して、間違えた条文を復習しましょう。
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+          <button onclick="startQuiz()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-sm transition flex items-center justify-center gap-2 text-sm sm:text-base">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>もう一度挑戦する（別セット / シャッフル）</span>
+          </button>
+          <button onclick="goHome()" class="bg-white hover:bg-slate-50 text-slate-700 font-bold py-3.5 px-5 rounded-xl border border-slate-300 transition text-sm sm:text-base">
+            スタート画面へ戻る
+          </button>
+        </div>
+      </div>
+
+      <!-- フィルター切り替えタブ -->
+      <div class="flex items-center justify-between">
+        <h3 class="text-base sm:text-lg font-bold text-slate-900">全10問の解答と解説</h3>
+        <div class="inline-flex rounded-lg bg-slate-200 p-1 text-xs font-bold">
+          <button id="filterAllBtn" onclick="filterResults('all')" class="px-3 py-1.5 rounded-md bg-white text-slate-900 shadow-sm transition">
+            すべて (10)
+          </button>
+          <button id="filterWrongBtn" onclick="filterResults('wrong')" class="px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition">
+            不正解のみ (<span id="wrongCountBadge">0</span>)
+          </button>
+        </div>
+      </div>
+
+      <!-- 解説リスト -->
+      <div id="reviewListContainer" class="space-y-4">
+        <!-- JSで動的生成 -->
+      </div>
+
+      <!-- 下部リトライボタン -->
+      <div class="pt-2">
+        <button onclick="startQuiz()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-4 px-6 rounded-xl shadow-md transition flex items-center justify-center gap-2 text-base">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>もう一度挑戦する（別セット / シャッフル）</span>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- カスタム確認モーダル（confirm()の代替） -->
+  <div id="confirmModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-200">
+      <h4 class="text-lg font-bold text-slate-900 mb-2">トップ画面に戻りますか？</h4>
+      <p class="text-sm text-slate-600 mb-6">現在解答中の内容は破棄されます。よろしいですか？</p>
+      <div class="flex gap-3">
+        <button onclick="closeConfirmModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-xl transition text-sm">
+          キャンセル
+        </button>
+        <button onclick="goHome()" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 px-4 rounded-xl transition text-sm">
+          トップへ戻る
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * F.I.P.J.P.競技規則（2020年12月改定）に基づく5択問題データベース（全25問）
+     * 各問題オブジェクトの構造:
+     * - category: 分野
+     * - question: 問題文
+     * - choices: 5つの選択肢（インデックス0を常に正解として定義し、出題時にシャッフルする）
+     * - explanation: 該当条文番号を明記した丁寧な解説
+     */
+    const QUESTION_POOL = [
+      {
+        category: "一般規定",
+        question: "第1条（チームの構成）に定められている対戦形式と各自が持つブールの数について、正しい記述はどれですか？",
+        choices: [
+          "トリプルス（3対3）では各競技者が2球を持ち、ダブルス（2対2）とシングルス（1対1）では各競技者が3球を持つ。",
+          "トリプルス（3対3）では各競技者が2球、ダブルス（2対2）では3球、シングルス（1対1）では4球を持つ。",
+          "トリプルス（3対3）とダブルス（2対2）では各競技者が2球を持ち、シングルス（1対1）では3球を持つ。",
+          "親善目的などの場合、4人対4人（カトルス）で各競技者が2球を持つ形式も特例として認められている。",
+          "いずれの対戦形式であっても、1チームあたりの合計ブール数が6球になるように調整すればよい。"
+        ],
+        explanation: "【第1条：チームの構成】ペタンクはトリプルス（3対3・各2球）、ダブルス（2対2・各3球）、シングルス（1対1・各3球）で対戦し、上記以外の形式は禁止されています。"
+      },
+      {
+        category: "一般規定",
+        question: "第2条（公認球の特性）に定められている、一般（11歳以下を除く）の公認ブールの規格として正しい組み合わせはどれですか？",
+        choices: [
+          "金属製で、直径7.05cm以上8cm以下、重さ650g以上800g以下",
+          "金属製で、直径7.00cm以上8.5cm以下、重さ600g以上800g以下",
+          "金属または硬質合成樹脂製で、直径7.05cm以上8cm以下、重さ650g以上800g以下",
+          "金属製で、直径6.50cm以上8cm以下、重さ650g以上850g以下",
+          "金属製で、直径7.05cm以上8cm以下、重さ620g以上780g以下"
+        ],
+        explanation: "【第2条：公認球の特性】一般の公認ブールは①金属製、②直径7.05cm（最小）〜8cm（最大）、③重さ650g（最小）〜800g（最大）で、製造者の商標と重さの数字が判読できる必要があります。なお、11歳以下対象の競技会では重さ600g・直径65mmも使用可能です。"
+      },
+      {
+        category: "一般規定",
+        question: "第2条の2（不適格ブールに対する制裁）における、ブールの変造および抗議に関する規定として正しいものはどれですか？",
+        choices: [
+          "鉛や砂を詰めたり焼きなまし等の変造を施したブールを使用した場合、違反者だけでなくチームメイトも直ちに大会から失格となる。",
+          "変造ブールの使用が発覚した場合、違反者本人のみが大会失格となり、残りのチームメイトは試合を続行できる。",
+          "第3メーヌ以降に相手チームのブールの変造について抗議し、根拠がないとして却下された場合、抗議したチームにイエローカードが科される。",
+          "ブールの直径や重さの規格不適合に関する抗議は、試合の途中であってもメーヌとメーヌの間であればいつでも受け入れられる。",
+          "製造規格書に従って自分の名前やイニシャルを刻印することも、ブールの加工・変造にあたるため禁止されている。"
+        ],
+        explanation: "【第2条の2：不適格ブールに対する制裁／第2条】変造（鉛・砂詰め、焼きなまし等）の違反は本人およびチームメイトも直ちに大会失格となります。なお、第3メーヌ以降の根拠なき変造抗議が却下された場合は「相手チームに3点」が与えられます（規格1〜3の抗議は競技開始前のみ可、刻印は認められています）。"
+      },
+      {
+        category: "一般規定",
+        question: "第3条（公認ビュット）に定められている、公認ビュットの規格として正しいものはどれですか？",
+        choices: [
+          "直径は30mm（許容：±1mm）、重さは10〜18gの間で、木製またはFIPJP公認の合成素材製であり、磁石で拾い上げられてはならない。",
+          "直径は30mm（許容：±2mm）、重さは10〜20gの間で、木製に限り認められ、着色してはならない。",
+          "直径は28mm（許容：±1mm）、重さは12〜18gの間で、視認性を高めるため鉄芯入りの合成素材製も認められている。",
+          "直径は30mm（許容：±1mm）、重さは10〜18gの間であり、木製ビュットに限り磁石で拾える金属ピンを埋め込むことができる。",
+          "直径は32mm（許容：±1mm）、重さは15〜22gの間で、FIPJPが公認した合成素材製でなければならない。"
+        ],
+        explanation: "【第3条：公認ビュット】ビュットは木製またはFIPJP公認の合成素材製で、直径30mm（±1mm）、重さ10〜18gです。着色は認められますが、木製・着色ビュットともに磁石で拾い上げることができてはなりません。"
+      },
+      {
+        category: "競技エリアとテラン",
+        question: "第5条（競技エリアとテランの規則）に定められている、テランの最低寸法とフェンス・得点に関する規定として正しいものはどれですか？",
+        choices: [
+          "選手権大会及び国際大会に使用するテランの最低寸法は幅4m、長さ15mであり、フェンスで囲まれている場合、フェンスはテラン外周のラインから最低1m離れていなければならない。",
+          "選手権大会及び国際大会に使用するテランの最低寸法は幅3m、長さ12mであり、フェンスは外周のラインから最低50cm離れていなければならない。",
+          "いかなる大会であっても、各国の連盟がテランの最低寸法を幅4m、長さ15m未満に変更することは一切認められていない。",
+          "予選試合であっても、公式大会の試合はすべて13点先取で行わなければならず、11点先取とすることはできない。",
+          "時間制限を設けた試合では、テランを区切るひものラインはエンドラインを除き無効ラインとはみなされない。"
+        ],
+        explanation: "【第5条：競技エリアとテランの規則】選手権・国際大会の最低寸法は幅4m×長さ15m（その他大会は連盟許可で幅3m×長さ12mまで変更可）。フェンスは外周ラインから最低1m離します。試合は13点先取（予選は11点先取可）で、時間制限がある場合はテランを区切るすべてのラインが無効ラインになります。"
+      },
+      {
+        category: "サークルの規則",
+        question: "第6条（競技の開始 - サークルの規則）に定められている、サークルの大きさや配置距離に関する規定として正しいものはどれですか？",
+        choices: [
+          "地面に描くサークルの直径は35cm以上50cm以下、ポータブルサークルは内径50cm（誤差±2mm）とし、すべての障害物から1m以上、使用中の他のサークルから1.5m以上離さなければならない。",
+          "地面に描くサークルの直径は40cm以上60cm以下、ポータブルサークルは内径50cm（誤差±5mm）とし、すべての障害物から1.5m以上離さなければならない。",
+          "地面に描くサークル・ポータブルサークルともに内径50cmで統一されており、障害物や他のサークルからはすべて1m以上離せばよい。",
+          "ポータブルサークルを使用する場合、地面に描く場合と同じく投球者の判断で35cm〜50cmの間でサイズを調整できる。",
+          "使用中の他のサークルからは1m以上、すべての障害物からは1.5m以上離れたところに描くか置かなければならない。"
+        ],
+        explanation: "【第6条：競技の開始 - サークルの規則】地面に描くサークルは直径35〜50cm、ポータブルサークルは硬い材質で内径50cm（誤差±2mm）です。設置位置は「すべての障害物から1m以上、使用中の他のサークルから1.5m以上」離す必要があります。"
+      },
+      {
+        category: "サークルの規則",
+        question: "第6条（サークルの規則）において、まだ投球するブールが残っているにもかかわらず、誤ってポータブルサークルを拾い上げてしまった場合の処置はどれですか？",
+        choices: [
+          "サークルは元の位置に戻されるが、そのメーヌではもう相手チームしか投球することができなくなる。",
+          "サークルを元の位置に戻し、拾い上げたチームにイエローカードが科された上で、残りのブールを投球できる。",
+          "その時点でメーヌは直ちに無効となり、前のメーヌで得点したチームが最初からやり直す。",
+          "拾い上げた競技者の残りのブール1球のみが無効となり、他のチームメイトは通常通り投球できる。",
+          "相手チームの同意があればサークルを戻してそのまま続行でき、同意が得られない場合のみ相手チームに1点が与えられる。"
+        ],
+        explanation: "【第6条：競技の開始 - サークルの規則】まだ投球するブールが残っているのにサークルを拾い上げた場合、サークルは元に戻されますが、そのメーヌでは「もう相手チームしか投球することができなくなる」と定められています。"
+      },
+      {
+        category: "ビュットの投入",
+        question: "第7条（ビュットを投げる規定距離）に定められている、ジュニアとシニアにおけるビュット投入の有効条件として正しいものはどれですか？",
+        choices: [
+          "サークル内側の先端から最低6m〜最大10mの距離にあり、すべての障害物及びエンドラインから50cm以上、使用中のサークルやビュットから1.5m以上離れていること。",
+          "サークル中心から最低6m〜最大10mの距離にあり、すべての障害物及びエンドラインから1m以上、使用中のサークルやビュットから1.5m以上離れていること。",
+          "サークル内側の先端から最低5m〜最大10mの距離にあり、エンドライン及びサイドラインから50cm以上離れていること。",
+          "サークル内側の先端から最低6m〜最大12mの距離にあり、すべての障害物から50cm以上、使用中の他のサークルから1m以上離れていること。",
+          "サークル内側の先端から最低6m〜最大10mの距離にあり、サイドラインとなっている無効ラインからも必ず50cm以上離れていること。"
+        ],
+        explanation: "【第7条：ビュットを投げる規定距離】ジュニアとシニアはサークル内側の先端から6m〜10m。すべての障害物及びエンドラインから50cm以上、使用中のサークル・ビュットから1.5m以上離れている必要があります（注：テランを区分するラインやサイドラインとなっている無効ラインからは離す必要はありません）。"
+      },
+      {
+        category: "ビュットの投入",
+        question: "第7条において、ビュット投入権のあるチーム（チームA）がビュットを投げたものの有効条件を満たさなかった場合、その後の進行はどうなりますか？",
+        choices: [
+          "相手チーム（チームB）が直ちに有効な位置にビュットを置き、最初のブールはビュット投入に失敗したチームAが投げる。",
+          "相手チーム（チームB）が有効な位置にビュットを置き、最初のブールもそのままチームBが投げる。",
+          "チームAはもう1回だけ投げ直すことができ、2回目も失敗した場合にチームBがビュットを置く。",
+          "チームBに1分間の持ち時間が与えられて有効位置にビュットを投げ直し、最初のブールはチームAが投げる。",
+          "チームBが有効な位置にビュットを置いた後、どちらが最初のブールを投げるかを再度コイントスで決める。"
+        ],
+        explanation: "【第6条・第7条】ビュット投入権は1回のみ（制限時間1分）です。失敗した場合、相手チームが「直ちに」有効な位置にビュットを置きますが、最初にブールを投げる権利はビュット投入に失敗したチームが有しています。"
+      },
+      {
+        category: "ビュットの有効・無効",
+        question: "第9条（メーヌ途中のビュットの無効）において、ジュニア及びシニアの試合中、ブールに当てられて移動したビュットが無効となる距離の条件はどれですか？",
+        choices: [
+          "投球サークルから20mを超えたとき、または3m以下に戻ったとき",
+          "投球サークルから20mを超えたとき、または5m以下に戻ったとき",
+          "投球サークルから15mを超えたとき、または3m以下に戻ったとき",
+          "投球サークルから25mを超えたとき、または4m以下に戻ったとき",
+          "投球サークルから18mを超えたとき、または2m以下に戻ったとき"
+        ],
+        explanation: "【第9条：メーヌ途中のビュットの無効】ビュットが移動して投球サークルから20m（年少競技者は15m）を超えたとき、または3m以下に戻ったときは無効となります。"
+      },
+      {
+        category: "障害物の移動",
+        question: "第10条（障害物の移動）に定められている、地面をたたく行為および窪みを埋める行為に関する正しい規定はどれですか？",
+        choices: [
+          "ビュットを投げる競技者は着地点の地面を調べるため自分のブールで地面を3回までたたけ、また投球者またはチームメイトは以前のブールでできた窪みを1カ所だけ埋めることができる。",
+          "ビュットを投げる競技者は自分のブールで地面を1回だけたたくことができ、また投球者は自分の投球前に窪みを3カ所まで埋めることができる。",
+          "すべての競技者は自分の投球前に着地点付近の地面を自分のブールで3回までたたいて固めることができ、小石も自由に取り除ける。",
+          "テラン内の小石や木の枝などの障害物は、両チームの合意があればいつでも自由に取り除くことができる。",
+          "ビュットを投げる競技者が地面をたたけるのは3回までだが、以前のブールでできた窪みを埋めることは一切禁止されている。"
+        ],
+        explanation: "【第10条：障害物の移動】テラン内の障害物の除去・移動・踏み潰しは禁止ですが、①ビュット投入者は着地点確認のため自分のブールで地面を3回までたたける、②投球者またはチームメイトは以前に投げられたブールでできた窪みを「1カ所だけ」埋めることができます。"
+      },
+      {
+        category: "ビュット・ブールの交換",
+        question: "第9条および第11条に定められている、メーヌ中にビュットやブールが見えなくなり探す場合に認められている最大時間は何分間ですか？",
+        choices: [
+          "5分間",
+          "3分間",
+          "2分間",
+          "1分間",
+          "10分間"
+        ],
+        explanation: "【第9条5)／第11条1)】ビュットまたはブールが移動して見つからない場合、探す時間は最大「5分間」と定められています。"
+      },
+      {
+        category: "ビュット・ブールの交換",
+        question: "第11条（ビュットまたはブールの交換）において、試合中にブールまたはビュットが割れてしまった場合の正しい処置はどれですか？",
+        choices: [
+          "最も大きい断片を有効とし、まだ投球するブールがあるときは必要に応じ計測後、同一または近い直径のブール・ビュットに置き換える。",
+          "割れた瞬間にそのメーヌは無効となり、競技者は直ちに予備のブールセットと交換してメーヌをやり直す。",
+          "最も小さい断片を有効とし、そのメーヌが終了するまではブールを補充せずに残りの球だけで戦う。",
+          "割れたブールは無効となってテランから取り除かれ、次のメーヌから新しいブールを使用できる。",
+          "割れた破片の重心位置を審判員が測定してマーキングし、その位置に新しいブールを置く。"
+        ],
+        explanation: "【第11条2)】ビュットまたはブールが割れた場合、「最も大きい断片を有効」とします。まだ投球するブールがあるときは、必要ならば計測をした後、同一または近い直径のビュットまたはブールに置き換え、次のメーヌから別のセットを使うことができます。"
+      },
+      {
+        category: "ビュットの移動・停止",
+        question: "第15条（ビュットが止められた場合の措置）において、正規テランでビュットがブールに当てられた後、競技者によって止められたか方向を変えられた場合、相手チームが選べる措置に含まれないものはどれですか？",
+        choices: [
+          "そのメーヌを直ちに無効とし、自チームに2点を加算して次のメーヌへ進む。",
+          "ビュットをその新たな停止位置のままにする。",
+          "（予めマーキングされていた場合）ビュットを元の位置に戻す。",
+          "（予めマーキングされていた場合）ビュットを元の位置から停止位置の延長線上の任意の位置（最大20mまで・見える位置）に置く。",
+          "マーキングがなかった場合は選択権はなく、停止位置が有効となる。"
+        ],
+        explanation: "【第15条2)】正規テランで競技者にビュットが止められたり方向を変えられた場合、相手チームはa)新位置のままにする、b)元の位置に戻す（要マーキング）、c)元位置から停止位置の延長線上の任意の位置に置く（要マーキング・20m以内）のいずれかを選べます。メーヌ無効＋2点加算という規定はありません。"
+      },
+      {
+        category: "ブールの投球規則",
+        question: "第16条（第1投目とその後の投球）および第18条・第21条に定められている投球時の規則として、誤っているものはどれですか？",
+        choices: [
+          "最後のブールを投げるときに、もう一方の手にチームメイトのブールを持っていても自分のブールでなければ問題ない。",
+          "競技者は、ブールの落としどころを示すために地面に線を引いたり物を置いたりしてはならない。",
+          "競技者はブールを投げる前に、ブールに付着した泥などの異物を取り除かなければならない。",
+          "試合中は、その競技テランの外であってもブールを試し投げすることは禁止されている。",
+          "ブールを投げる制限時間は、直前に投げたブールまたはビュットが停止してから最大1分間である。"
+        ],
+        explanation: "【第16条・第18条・第21条】第16条第2段落に「最後のブールを投げるとき、もう一方の手に余分のブールを持ってはならない」と明記されています。他の4つの選択肢はいずれも正しい規定です。"
+      },
+      {
+        category: "競技者の態度",
+        question: "第17条（試合中の競技者と観客の態度）に定められている、相手チームが投球しようとしている際の立ち位置に関する規定として正しいものはどれですか？",
+        choices: [
+          "相手チームは、ビュットの先または投球する競技者の後方に控えるが、競技の方向に対して側面であって、且つ競技者またはビュットから2m以上離れていなければならない。",
+          "相手チームは、ビュットと投球サークルの間であっても、競技者から1m以上離れて静止していれば立つことができる。",
+          "相手チームは、投球する競技者の真後ろであれば1m以上離れることで控えることができる。",
+          "相手チームは、競技者またはビュットから1.5m以上離れていれば、声を出さずに身振り手振りで味方と作戦を相談してもよい。",
+          "相手チームだけでなく、投球する競技者のチームメイトもビュットと投球サークルの間に立つことは一切禁止されている。"
+        ],
+        explanation: "【第17条】相手チームは投球に支障となる行為（歩行、身振り手振りの会話等）をしてはならず、ビュットの先または投球者の後方で、競技方向の側面かつ「競技者またはビュットから2m以上」離れる必要があります（なお、チームメイトだけはビュットとサークルの間に立つことができます）。"
+      },
+      {
+        category: "止められたブール",
+        question: "第20条（止められたブール）において、競技者が動いているブールを故意に止めた場合の罰則として正しいものはどれですか？",
+        choices: [
+          "その競技者だけでなく、そのチーム全体が直ちに進行中の試合において失格となる。",
+          "その競技者にレッドカードが科されて退場となるが、残りのチームメイトで試合を続行できる。",
+          "そのブールが無効となり、相手チームにペナルティとして3点が与えられる。",
+          "最初の違反であればイエローカード（警告）が科され、2回目でチーム失格となる。",
+          "相手チームがアドヴァンテージルールを適用し、ブールを停止位置のままにするか無効にするかを選べる。"
+        ],
+        explanation: "【第20条最終段落】「競技者が動いているブールを故意に止めた場合、競技者だけでなくそのチームは直ちに進行中の試合において失格となる」と厳しく規定されています。"
+      },
+      {
+        category: "止められたブール",
+        question: "第20条（止められたブール）において、投げたブールが「同じチームの競技者」に偶然に当たって止められるか方向を変えられた場合、そのブールはどう扱われますか？",
+        choices: [
+          "そのブールは無効となる。",
+          "そのブールが停止した位置のまま有効となる。",
+          "投げた競技者は同じブールをもう1度投げ直すことができる。",
+          "相手チームが「無効にする」か「停止位置のままにする」かを選択できる。",
+          "ブールが無効になるうえ、当たった競技者にイエローカードが科される。"
+        ],
+        explanation: "【第20条第2段落】投げたブールが同じチームの競技者に偶然に当たって止められるか方向を変えられた場合、「そのブールは無効」となります（なお、観客・審判員に当たった場合は停止位置が有効、ポワンテしたブールが相手チームに偶然止められた場合は投げ直しまたは停止位置を選択できます）。"
+      },
+      {
+        category: "誤投球の処置",
+        question: "第23条（自分のブール以外のブールを投げた競技者）に定められている、他人のブールを誤って投げてしまった場合の規定として正しいものはどれですか？",
+        choices: [
+          "初回は警告を受けるが投げたブールは有効であり、必要なら計測後直ちに自分のブールと置き換える。同一試合中に同じ違反をした場合、そのブールは無効となる。",
+          "初回であってもそのブールは直ちに無効となり、動かされたブールやビュットはすべて元の位置に戻される。",
+          "初回は警告も無効もなく、計測後に自分のブールと置き換えるだけでよいが、2回目でレッドカード退場となる。",
+          "同じチームの競技者のブールを投げた場合は有効で置き換え不要だが、相手チームのブールを投げた場合は即座に無効となる。",
+          "初回は投げ直しが認められるが、同一試合中に2回目の違反をした場合はそのメーヌの残りの投球権をすべて失う。"
+        ],
+        explanation: "【第23条】自分のブール以外のブールを投げた場合、1回目は警告を受けますが投球自体は有効で、必要に応じ計測後に自分のブールと置き換えます。同一試合中に2回目の同じ違反をした場合はブールが無効となり、動かされたものは（マーキングされていれば）元に戻されます。"
+      },
+      {
+        category: "得点と計測",
+        question: "第26条（得点の計測）に定められている、計測方法および審判員による計測時のルールとして正しいものはどれですか？",
+        choices: [
+          "足で計測することは禁止されており（違反は第35条の罰則対象）、審判員が計測している間、競技者は審判員から少なくとも2m以上離れていなければならない。",
+          "両チームが合意している場合に限り、靴のつま先を使って距離を計測することが認められている。",
+          "審判員が計測している間、各チームのキャプテン1名だけは審判員のすぐ隣で立ち会うことができる。",
+          "計測は常に先攻チームの競技者が行い、後攻チームには自ら計測する権利はない。",
+          "計測器具を忘れた場合は、スコアカードやタオルなどの身近な物品を代用して計測してもよい。"
+        ],
+        explanation: "【第26条】各チームは適切な計測用具を所持して使用しなければならず、「足で計測すること」は禁止（第35条罰則）です。また、審判員が計測中は、競技者は審判員から少なくとも「2m以上」離れていなければなりません。"
+      },
+      {
+        category: "得点と計測",
+        question: "第27条（得点を数える前に拾い上げたブール）において、チームメイトにまだブールが残っているのに、同じチームの競技者が有効地域内にある自分のブールを拾い上げた場合どうなりますか？",
+        choices: [
+          "拾い上げたブールは無効となり、さらにそのチームは残りのブールを使えなくなる。",
+          "拾い上げたブールのみが無効となるが、チームメイトは残っているブールをすべて投球できる。",
+          "審判員がマーキングの位置にブールを戻し、チームにイエローカードが科された上で続行する。",
+          "その時点でメーヌが終了し、相手チームに残っているブールの数だけが相手チームの得点となる。",
+          "拾い上げた競技者はレッドカードで退場となるが、チームメイトは残りのブールを投げることができる。"
+        ],
+        explanation: "【第27条】得点を数える前に拾い上げたブールは無効です。さらに「もしチームメイトにまだブールが残っているのに、同じチームの競技者が有効地域内にある自分のブールを拾い上げた場合、そのチームは残りのブールを使えなくなる」と規定されています。"
+      },
+      {
+        category: "得点と計測",
+        question: "第28条（ブール及びビュットの移動）において、競技者の一人が計測中に「得点に絡むビュットまたはブール」を動かしてしまった場合、どのような処置がとられますか？",
+        choices: [
+          "この競技者が属するチームの得点は無くなる。",
+          "マーキングがされていれば元の位置に戻して計測をやり直し、動かした競技者に警告が与えられる。",
+          "動かされたブールまたはビュットのみを除外して、残りのブールだけで得点を数える。",
+          "相手チームに自動的に1点が追加された上で、本来の得点計算を行う。",
+          "マーキングの有無にかかわらず、審判員が公平な判断で元の位置を推定して得点を決定する。"
+        ],
+        explanation: "【第28条】「競技者の一人が計測中に得点に絡むビュットまたはブールを動かした場合、この競技者が属するチームの得点は無くなる」と定められています（なお、審判員が動かしてしまった場合は審判員が公平な判定を下します）。"
+      },
+      {
+        category: "抗議・遅刻",
+        question: "第32条（不在チームまたは不在競技者へのペナルティー）において、通常の大会で対戦組合せ抽選結果の発表から一定時間経過してもテランにいないチームに対するペナルティーとして正しいものはどれですか？",
+        choices: [
+          "発表から15分後に相手チームに1点が与えられ、以後5分ごとに1点ずつ追加され、試合開始（または再開）から30分後にいない場合は大会敗退が宣告される。",
+          "発表から10分後に相手チームに1点が与えられ、以後5分ごとに2点ずつ追加され、20分後に大会敗退となる。",
+          "発表から15分後に相手チームに2点が与えられ、以後10分ごとに2点ずつ追加され、45分後に大会敗退となる。",
+          "時間制限のある大会であっても、遅刻ペナルティーが科されるまでの猶予時間は常に15分間と定められている。",
+          "競技者が1人でも欠けている場合、全員が揃うまで絶対に試合を開始してはならない。"
+        ],
+        explanation: "【第32条】抽選発表から15分後（時間制限大会では5分まで縮小可）に不在だと相手チームに1点、以後5分ごとに1点ずつ追加され、試合開始・再開から30分後にいないチームは大会敗退となります。なお、欠員がいても残りのメンバーで試合を始めることができます（不在者のブールは使用不可）。"
+      },
+      {
+        category: "競技上の制裁・マナー",
+        question: "第35条（競技上の制裁）および第39条（悪質な言動）に定められているカードの種類と禁止事項について、正しい記述はどれですか？",
+        choices: [
+          "時間超過違反のイエローカードは違反チームの競技者全員に科され、既にイエローカードを受けている競技者はそのメーヌ（投球済みなら次メーヌ）でブール1球が取り消される。",
+          "イエローカードは警告、オレンジカードは当該試合からの退場、レッドカードは大会失格を宣告するカードである。",
+          "試合中の紙巻きタバコの喫煙は禁止されているが、電子タバコの使用や着信音を出さない状態での携帯電話の通話は認められている。",
+          "大会開始時の諸注意の後に初めて受けた時間超過のイエローカードは、違反した競技者本人のみに科される。",
+          "安全上の理由から履物の規定はあるが、猛暑日であれば審判員の許可を得て上半身裸で競技することも認められている。"
+        ],
+        explanation: "【第35条・第39条】イエローカード＝警告（時間超過はチーム全員に科され、既受領者は1球取消）、オレンジカード＝ブール無効、レッドカード＝当該試合からの退場です。また、上半身裸の禁止、つま先と踵を守る靴の着用義務、電子タバコを含む喫煙禁止、試合中の携帯電話使用禁止が定められています。"
+      },
+      {
+        category: "審判と競技審査委員会",
+        question: "第41条（競技審査委員会の構成と決定）に定められている、競技審査委員会の人数構成と決定に関するルールとして正しいものはどれですか？",
+        choices: [
+          "3名以上5名以下の委員で構成され、委員会が出した判定には一切抗議できず、委員会内で意見が分かれた場合は委員長が最終決定をする。",
+          "3名以上7名以下の奇数名の委員で構成され、判定に不服がある場合は試合終了後1時間以内に書面で抗議できる。",
+          "必ず5名の委員で構成され、全員一致の賛成がなければ判定を下すことができない。",
+          "2名以上4名以下の委員で構成され、意見が分かれた場合は審判員の意見を採用して最終決定とする。",
+          "3名以上5名以下の委員で構成され、委員会内で意見が分かれた場合は抽選によって最終決定をする。"
+        ],
+        explanation: "【第41条：競技審査委員会の構成と決定】競技審査委員会は「3名以上5名以下」の委員で構成されます。委員会が出した判定には一切抗議できず、意見が分かれた場合は「競技審査委員会の委員長が最終決定をする」と規定されています。"
+      }
+    ];
+
+    // アプリの状態管理
+    let currentQuizSet = [];      // 出題される10問（選択肢シャッフル済み）
+    let userAnswers = [];         // 各問題のユーザー選択インデックス (null or 0..4)
+    let currentIndex = 0;         // 現在の問題番号 (0..9)
+    const QUIZ_LENGTH = 10;
+
+    // 初期化表示
+    document.getElementById('totalPoolCount').textContent = QUESTION_POOL.length;
+
+    /**
+     * 配列をフィッシャー・イェーツ法でシャッフルするユーティリティ
+     */
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    /**
+     * クイズを開始・リセットして10問を生成する
+     */
+    function startQuiz() {
+      // 全問題プールからシャッフルして10問抽出
+      const selectedRaw = shuffleArray(QUESTION_POOL).slice(0, QUIZ_LENGTH);
+
+      // 各問題の選択肢もシャッフルし、正解の新しいインデックスを記録
+      currentQuizSet = selectedRaw.map((q) => {
+        const indexedChoices = q.choices.map((text, idx) => ({
+          text,
+          isCorrect: idx === 0
+        }));
+        const shuffledChoices = shuffleArray(indexedChoices);
+        const correctIndex = shuffledChoices.findIndex(c => c.isCorrect);
+
+        return {
+          category: q.category,
+          question: q.question,
+          choices: shuffledChoices.map(c => c.text),
+          correctIndex: correctIndex,
+          explanation: q.explanation
+        };
+      });
+
+      userAnswers = new Array(QUIZ_LENGTH).fill(null);
+      currentIndex = 0;
+
+      // 画面切り替え
+      document.getElementById('startScreen').classList.add('hidden');
+      document.getElementById('resultScreen').classList.add('hidden');
+      document.getElementById('quizScreen').classList.remove('hidden');
+      document.getElementById('headerResetBtn').classList.remove('hidden');
+      closeConfirmModal();
+
+      renderQuestion();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /**
+     * 現在の問題を描画する（解答中は正誤・解説を一切出さない）
+     */
+    function renderQuestion() {
+      const q = currentQuizSet[currentIndex];
+      const selectedChoice = userAnswers[currentIndex];
+
+      // ヘッダー・プログレスバー更新
+      document.getElementById('currentQNum').textContent = currentIndex + 1;
+      const answeredCount = userAnswers.filter(a => a !== null).length;
+      document.getElementById('answeredCountText').textContent = `解答済み: ${answeredCount} / ${QUIZ_LENGTH}`;
+      const progressPercent = ((currentIndex + 1) / QUIZ_LENGTH) * 100;
+      document.getElementById('progressBar').style.width = `${progressPercent}%`;
+
+      // 問題文・カテゴリ
+      document.getElementById('questionCategoryBadge').textContent = q.category;
+      document.getElementById('questionText').textContent = q.question;
+
+      // 5つの選択肢ボタンを生成
+      const container = document.getElementById('choicesContainer');
+      container.innerHTML = '';
+
+      const labels = ['1', '2', '3', '4', '5'];
+
+      q.choices.forEach((choiceText, idx) => {
+        const isSelected = selectedChoice === idx;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.onclick = () => selectChoice(idx);
+
+        // 選択状態に応じたスタイル
+        const baseClasses = "choice-btn w-full text-left p-4 rounded-xl border-2 flex items-start gap-3.5 focus:outline-none";
+        const stateClasses = isSelected
+          ? "border-sky-600 bg-sky-50/90 text-slate-900 shadow-xs"
+          : "border-slate-200 bg-white hover:border-sky-300 hover:bg-slate-50 text-slate-700";
+
+        btn.className = `${baseClasses} ${stateClasses}`;
+
+        const badgeClasses = isSelected
+          ? "bg-sky-600 text-white border-sky-600"
+          : "bg-slate-100 text-slate-600 border-slate-300";
+
+        btn.innerHTML = `
+          <span class="w-7 h-7 rounded-lg border font-bold text-sm flex items-center justify-center shrink-0 mt-0.5 transition-colors ${badgeClasses}">
+            ${labels[idx]}
+          </span>
+          <span class="text-sm sm:text-base leading-relaxed font-medium">${escapeHtml(choiceText)}</span>
+        `;
+        container.appendChild(btn);
+      });
+
+      // ナビゲーションボタンの状態更新
+      const prevBtn = document.getElementById('prevBtn');
+      prevBtn.disabled = currentIndex === 0;
+
+      const nextBtn = document.getElementById('nextBtn');
+      const nextBtnLabel = document.getElementById('nextBtnLabel');
+      nextBtn.disabled = selectedChoice === null;
+
+      if (currentIndex === QUIZ_LENGTH - 1) {
+        nextBtnLabel.textContent = '結果を見る';
+      } else {
+        nextBtnLabel.textContent = '次の問題へ';
+      }
+    }
+
+    /**
+     * 選択肢をクリックしたときの処理
+     */
+    function selectChoice(choiceIdx) {
+      userAnswers[currentIndex] = choiceIdx;
+      renderQuestion();
+    }
+
+    /**
+     * 前の問題へ戻る
+     */
+    function prevQuestion() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderQuestion();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    /**
+     * 次の問題へ進む（最終問題なら結果画面へ）
+     */
+    function nextQuestion() {
+      if (userAnswers[currentIndex] === null) return;
+
+      if (currentIndex < QUIZ_LENGTH - 1) {
+        currentIndex++;
+        renderQuestion();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        showResults();
+      }
+    }
+
+    /**
+     * 10問終了後の結果・解説画面を表示する
+     */
+    function showResults() {
+      document.getElementById('quizScreen').classList.add('hidden');
+      document.getElementById('resultScreen').classList.remove('hidden');
+
+      let correctCount = 0;
+      currentQuizSet.forEach((q, idx) => {
+        if (userAnswers[idx] === q.correctIndex) {
+          correctCount++;
+        }
+      });
+
+      const wrongCount = QUIZ_LENGTH - correctCount;
+      const percent = Math.round((correctCount / QUIZ_LENGTH) * 100);
+
+      document.getElementById('scoreCount').textContent = correctCount;
+      document.getElementById('scorePercent').textContent = percent;
+      document.getElementById('wrongCountBadge').textContent = wrongCount;
+
+      // スコアに応じたコメント
+      const commentEl = document.getElementById('scoreComment');
+      if (correctCount === 10) {
+        commentEl.textContent = '全問正解です！F.I.P.J.P.競技規則を完璧に理解されています。';
+      } else if (correctCount >= 8) {
+        commentEl.textContent = '素晴らしい成績です！間違えた条文の細かい数値や条件を確認しておきましょう。';
+      } else if (correctCount >= 5) {
+        commentEl.textContent = 'まずまずの理解度です。解説を読んで迷った条文を復習しましょう！';
+      } else {
+        commentEl.textContent = '規則には細かい数値や例外規定が多くあります。解説を確認して再挑戦しましょう！';
+      }
+
+      // フィルター初期化して全問描画
+      filterResults('all');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /**
+     * 結果一覧のフィルタリング描画（すべて / 不正解のみ）
+     */
+    function filterResults(mode) {
+      const allBtn = document.getElementById('filterAllBtn');
+      const wrongBtn = document.getElementById('filterWrongBtn');
+
+      if (mode === 'all') {
+        allBtn.className = "px-3 py-1.5 rounded-md bg-white text-slate-900 shadow-sm transition";
+        wrongBtn.className = "px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition";
+      } else {
+        wrongBtn.className = "px-3 py-1.5 rounded-md bg-white text-slate-900 shadow-sm transition";
+        allBtn.className = "px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition";
+      }
+
+      const container = document.getElementById('reviewListContainer');
+      container.innerHTML = '';
+
+      const labels = ['1', '2', '3', '4', '5'];
+      let renderedCount = 0;
+
+      currentQuizSet.forEach((q, idx) => {
+        const userIdx = userAnswers[idx];
+        const isCorrect = userIdx === q.correctIndex;
+
+        if (mode === 'wrong' && isCorrect) return;
+        renderedCount++;
+
+        const card = document.createElement('div');
+        card.className = `bg-white rounded-2xl shadow-sm border ${isCorrect ? 'border-slate-200' : 'border-rose-200'} p-5 sm:p-6`;
+
+        const statusBadge = isCorrect
+          ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+               正解
+             </span>`
+          : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800">
+               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+               不正解
+             </span>`;
+
+        const userChoiceText = userIdx !== null ? `(${labels[userIdx]}) ${escapeHtml(q.choices[userIdx])}` : '未解答';
+        const correctChoiceText = `(${labels[q.correctIndex]}) ${escapeHtml(q.choices[q.correctIndex])}`;
+
+        card.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-extrabold text-slate-800">第 ${idx + 1} 問</span>
+              <span class="text-xs font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-600">${escapeHtml(q.category)}</span>
+            </div>
+            ${statusBadge}
+          </div>
+
+          <p class="text-sm sm:text-base font-bold text-slate-900 leading-relaxed mb-4">
+            ${escapeHtml(q.question)}
+          </p>
+
+          <div class="space-y-2 text-sm mb-4">
+            <div class="p-3 rounded-xl border ${isCorrect ? 'bg-emerald-50/70 border-emerald-200 text-emerald-950' : 'bg-rose-50/70 border-rose-200 text-rose-950'}">
+              <div class="text-xs font-bold mb-0.5 ${isCorrect ? 'text-emerald-700' : 'text-rose-700'}">あなたの回答：</div>
+              <div class="font-medium leading-snug">${userChoiceText}</div>
+            </div>
+
+            ${!isCorrect ? `
+              <div class="p-3 rounded-xl border bg-sky-50/70 border-sky-200 text-sky-950">
+                <div class="text-xs font-bold text-sky-700 mb-0.5">正しい回答：</div>
+                <div class="font-medium leading-snug">${correctChoiceText}</div>
+              </div>
+            ` : ''}
+          </div>
+
+          <div class="bg-slate-50 rounded-xl p-3.5 sm:p-4 border border-slate-200/80 text-xs sm:text-sm text-slate-700 leading-relaxed">
+            <div class="font-bold text-slate-900 mb-1 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-sky-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>条文解説</span>
+            </div>
+            <p>${escapeHtml(q.explanation)}</p>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      if (renderedCount === 0 && mode === 'wrong') {
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-600 text-sm">
+            不正解の問題はありませんでした！全問正解おめでとうございます。
+          </div>
+        `;
+      }
+    }
+
+    /**
+     * 解答中のトップ画面戻り確認モーダル制御
+     */
+    function confirmReturnHome() {
+      const isQuizActive = !document.getElementById('quizScreen').classList.contains('hidden');
+      if (isQuizActive) {
+        document.getElementById('confirmModal').classList.remove('hidden');
+      } else {
+        goHome();
+      }
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirmModal').classList.add('hidden');
+    }
+
+    function goHome() {
+      closeConfirmModal();
+      document.getElementById('quizScreen').classList.add('hidden');
+      document.getElementById('resultScreen').classList.add('hidden');
+      document.getElementById('headerResetBtn').classList.add('hidden');
+      document.getElementById('startScreen').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /**
+     * HTMLエスケープ処理
+     */
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
